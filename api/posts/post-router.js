@@ -56,10 +56,11 @@ router.delete('/:id', checkId, async (req, res, next) => {
 })
 
 router.use((err, req, res, next) => {
-  res.status(500).json({ message: err.message, stack: err.stack })
+  err.statusCode = err.statusCode ? err.statusCode : 500;
+  res.status(err.statusCode).json({ message: err.message, stack: err.stackc})
 })
 
-function checkId(req, res, next) {
+async function checkId(req, res, next) {
   const { id } = req.params;
   try {
     const post = await Post.getById(id);
@@ -67,11 +68,13 @@ function checkId(req, res, next) {
       req.post = post;
       next();
     } else {
-      res.status(400).json({message:'invalid id'});
+      const err = new Error('invalid id');
+      err.statusCode = 404;
       next(err);
     }
   } catch (err) {
-    res.status(500).json({message: 'error retrieving a post'});
+    err.statusCode = 500;
+    err.message = 'error retreiving a post';
     next(err);
   }
 }
@@ -79,11 +82,11 @@ function checkId(req, res, next) {
 function checkPayload(req, res, next) {
   const body = req.body;
   if (!body.title || !body.contents) {
-    res.statusCode(400).json({message: 'body must inclue "title" and "contents"'});
-    next()
+    const err = new Error('body must include "title" and "content"');
+    err.statusCode = 400
+    next(err);
   } else {
-    res.statusCode(500).json({message: 'error retrieving post'});
-    next(err)
+    next()
   }
 }
 

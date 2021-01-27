@@ -32,6 +32,7 @@ async function update(id, changes) {
   return count;
 }
 
-async function remove() {
-  const count = await db()
+async function remove(id) {
+  const count = await db('posts').where( { id }).del;
+  return count;
 }
